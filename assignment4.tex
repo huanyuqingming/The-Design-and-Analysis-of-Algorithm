@@ -1,0 +1,156 @@
+%Example of use of oxmathproblems latex class for problem sheets
+\documentclass{oxmathproblems}
+\usepackage{algorithmic}
+\usepackage{algorithm,float}
+\usepackage{hyperref}
+\hypersetup{hidelinks,
+  colorlinks=true,
+  allcolors=black,
+  pdfstartview=Fit,
+  breaklinks=true}
+
+%(un)comment this line to enable/disable output of any solutions in the file
+%\printanswers
+
+%define the page header/title info
+\course{Algorithm Design and Analysis (Fall 2023)}
+\sheettitle{Assignment 4\\Deadline: Dec 26, 2023\\\small{Yuqing Tu 522030910152}} %can leave out if no title per sheet
+
+\begin{document}
+\begin{questions}
+
+    \makeatletter
+    \newenvironment{breakablealgorithm}
+      {% \begin{breakablealgorithm}
+      \begin{center}
+        \refstepcounter{algorithm}% New algorithm
+        \hrule height.8pt depth0pt \kern2pt% \@fs@pre for \@fs@ruled 画线
+        \renewcommand{\caption}[2][\relax]{% Make a new \caption
+        {\raggedright\textbf{\ALG@name~\thealgorithm} ##2\par}%
+        \ifx\relax##1\relax % #1 is \relax
+          \addcontentsline{loa}{algorithm}{\protect\numberline{\thealgorithm}##2}%
+        \else % #1 is not \relax
+          \addcontentsline{loa}{algorithm}{\protect\numberline{\thealgorithm}##1}%
+        \fi
+        \kern2pt\hrule\kern2pt
+        }
+      }{% \end{breakablealgorithm}
+        \kern2pt\hrule\relax% \@fs@post for \@fs@ruled 画线
+      \end{center}
+      }
+    \makeatother
+
+\miquestion [30]
+Consider that you are in a stock market and you would like to maximize your profit. Suppose the prices of the stock for the $n$ days, $p_1,p_2,\ldots,p_n$, are given to you. On the $i$-th day, you are allowed to do exactly one of the following operations:
+     \begin{itemize}
+         \item Buy one unit of the stock and pay the price $p_i$. Your stock will increase by $1$.
+         \item Sell one unit of stock and get the reward $p_i$ if your stock is at least $1$. Your stock will decrease by one.
+         \item Do nothing.
+     \end{itemize}
+    Design an $O(n^2)$ time dynamic programming algorithm.
+
+    \textbf{Remark:} [Not for credits] There exits a clever greedy algorithm that runs in $O(n\log n)$ time. Can you figure it out?
+
+\textbf{Solution:}
+
+\begin{breakablealgorithm}
+    \caption{Maximizing profit}
+    \begin{algorithmic}[1]
+        \STATE{$dp[1][0] \leftarrow 0, dp[1][1] \leftarrow -p_1$}
+        \STATE{$dp[1][i] \leftarrow -\infty$ for all $i$ from $2$ to $n$}
+        \FOR{all $i$ from $1$ to $n$}
+        \FOR{all $j$ from $0$ to $i$}
+        \IF{$j = 0$}
+        \STATE{$dp[i][j] \leftarrow \max \{dp[i-1][j], dp[i-1][j+1]\}$}
+        \ELSIF{$j = n$}
+        \STATE{$dp[i][j] \leftarrow \max \{dp[i-1][j-1], dp[i-1][j]\}$}
+        \ELSE
+        \STATE{$dp[i][j] \leftarrow \max \{dp[i-1][j-1], dp[i-1][j], dp[i-1][j+1]\}$}
+        \ENDIF
+        \ENDFOR
+        \ENDFOR
+        \RETURN{$\max \{dp[n][j]\}$ for all $j$ from $0$ to $n$}
+    \end{algorithmic}
+\end{breakablealgorithm}
+
+Time complexity:\\
+There are two nested loops, the total number of cycles is $\sum_{i=1}^{n}{(i+1)} = \frac{(n-1)(n+2)}{2}$ and each cycle's time complexity is $O(1)$. So the time complexity is $O(n^2)$
+
+\miquestion[30]
+Given two strings $x=x_1x_2\cdots x_n$ and $y=y_1y_2\cdots y_n$, we wish to find the length of their \emph{longest common subsequence}, that is, the largest $k$ for which there are indices $i_1<i_2<\cdots <i_k$ and $j_1<j_2<\cdots<j_k$ with $x_{i_1}x_{i_2}\cdots x_{i_k}=y_{j_1}y_{j_2}\cdots y_{j_k}$. Design an $O(n^2)$ dynamic programming algorithm for this problem.
+
+\textbf{Solution:}
+
+\begin{breakablealgorithm}
+  \caption{The longest common subsequence}
+  \begin{algorithmic}[1]
+      \STATE{$dp[0][j] \leftarrow 0$ for all $j$ from $0$ to $n$}
+      \STATE{$dp[i][0] \leftarrow 0$ for all $i$ from $0$ to $n$}
+      \STATE{$max \leftarrow 0$}
+      \FOR{all $i$ from $1$ to $n$}
+      \FOR{all $j$ from $1$ to $n$}
+      \IF{$x_i = y_j$}
+      \STATE{$dp[i][j] \leftarrow dp[i-1][j-1] + 1$}
+      \ELSE
+      \STATE{$dp[i][j] \leftarrow 0$}
+      \ENDIF
+      \IF{$max < dp[i][j]$}
+      \STATE{$max \leftarrow dp[i][j]$}
+      \ENDIF
+      \ENDFOR
+      \ENDFOR
+      \RETURN{$max$}
+  \end{algorithmic}
+\end{breakablealgorithm}
+
+Time complexity:\\
+There are two nested loops, the total number of cycles is $n^2$ and each cycle's time complexity is $O(1)$. So the time complexity is $O(n^2)$
+
+\miquestion[40]
+In the \emph{Traveling Salesman Problem} (TSP), we are given an undirected weighted complete graph $G=(V,E,w)$ (where $(i,j)\in E$ for any $i\neq j\in V$). The objective is to find a cycle of length $|V|$ with minimum total weight, i.e., to find a tour that visit each vertex exactly once such that the total distance traveled in the tour is minimized.
+Obviously, the na\"ive exhaustive search algorithm requires $O((n-1)!)$ time.
+In this question, you are to design a dynamic programming algorithm for the TSP problem with time complexity $O(n^2\cdot 2^n)$.
+\begin{parts}
+\part[10] Show that $n^2\cdot 2^n=o((n-1)!)$, so that the above-mentioned algorithm is indeed faster than the na\"ive exhaustive search algorithm.
+\part[30] Design this algorithm. Hint: label all vertices as $1,2,\ldots,n$; given $i\in V$ and $S\subseteq V\setminus\{1,i\}$, let $d(S,i)$ be the length of the shortest path from $1$ to $i$ where the intermediate vertices are \emph{exactly} those in $S$; show that the minimum weight cycle/tour is $\min_{i=2,3,\ldots,n}\{d(V\setminus\{1,i\},i)+w(i,1)\}$.
+\end{parts}
+
+\textbf{Solution:}
+
+\begin{parts}
+  \part
+  $$\lim_{n\rightarrow\infty}{\frac{n^2\cdot2^n}{(n-1)!}} = 2\cdot\lim_{n\rightarrow\infty}{\frac{2n}{n-1}}\cdot\lim_{n\rightarrow\infty}{\frac{2n}{n-2}}\cdot\lim_{n\rightarrow\infty}\prod _{i = 1}^{n-3}{\frac{2}{i}} = 2\cdot 2\cdot 2\cdot 0 = 0$$
+  So $n^2\cdot 2^n=o((n-1)!)$
+  \part
+  \begin{breakablealgorithm}
+    \caption{TSP}
+    \begin{algorithmic}[1]
+      \STATE{find the minimum path $l[u][v]$ between $u, v \in v$}
+      \STATE{$dp[\{u\}][u] \leftarrow l[u][1]$ for all $u \in V\backslash \{1\}$}
+      \FOR{all $S$ from binary of $1$ to binary of $2^n$}
+      \FOR{all $u$ from $1$ to $n$}
+      \IF{$u \in S$ and $|S| \neq 1$}
+      \STATE{$dp[S][u] = \min_{v \in S\backslash \{u\}}\{dp[S\backslash \{u\}][v] + l[v][u]\}$}
+      \ENDIF
+      \ENDFOR
+      \ENDFOR
+      \RETURN{$dp[V][1]$}
+    \end{algorithmic}
+  \end{breakablealgorithm}
+  \end{parts}
+
+Time complexity:\\
+The time complexity of finding the minimum edges is $O(n^3)$ (use Dijkstra Algorithm).
+And there are two nested loops, the total number of cycles is $n\cdot 2^n$ and each cycle's time complexity is $O(n)$. So the time complexity is $O(n^2\cdot 2^n)$
+Then the total time complexity is $O(n^3 + n^2\cdot 2^n) = O(n^2\cdot 2^n)$.
+
+\miquestion
+How long does it take you to finish the assignment (including thinking and discussion)?
+Give a score (1,2,3,4,5) to the difficulty.
+Do you have any collaborators?
+Please write down their names here.
+
+It took me about 3 hours to finish the assignment. I'll give a 2 to the difficulty.
+
+\end{questions}
+\end{document}

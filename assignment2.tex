@@ -1,0 +1,192 @@
+%Example of use of oxmathproblems latex class for problem sheets
+\documentclass{oxmathproblems}
+\usepackage{algorithmic}
+\usepackage{algorithm,float}
+\usepackage{hyperref}
+\hypersetup{hidelinks,
+	colorlinks=true,
+	allcolors=black,
+	pdfstartview=Fit,
+	breaklinks=true}
+
+%(un)comment this line to enable/disable output of any solutions in the file
+%\printanswers
+
+%define the page header/title info
+\course{Algorithm Design and Analysis (Fall 2023)}
+\sheettitle{Assignment 2\\Deadline: Nov 27, 2023\\\small{Yuqing Tu 522030910152}} %can leave out if no title per sheet
+
+\begin{document}
+\begin{questions}
+
+\makeatletter
+\newenvironment{breakablealgorithm}
+	{% \begin{breakablealgorithm}
+	\begin{center}
+		\refstepcounter{algorithm}% New algorithm
+		\hrule height.8pt depth0pt \kern2pt% \@fs@pre for \@fs@ruled 画线
+		\renewcommand{\caption}[2][\relax]{% Make a new \caption
+		{\raggedright\textbf{\ALG@name~\thealgorithm} ##2\par}%
+		\ifx\relax##1\relax % #1 is \relax
+			\addcontentsline{loa}{algorithm}{\protect\numberline{\thealgorithm}##2}%
+		\else % #1 is not \relax
+			\addcontentsline{loa}{algorithm}{\protect\numberline{\thealgorithm}##1}%
+		\fi
+		\kern2pt\hrule\kern2pt
+		}
+	}{% \end{breakablealgorithm}
+		\kern2pt\hrule\relax% \@fs@post for \@fs@ruled 画线
+	\end{center}
+	}
+\makeatother
+
+\miquestion[25]
+Design a polynomial time algorithm that, given a directed unweighted graph $G=(V,E)$ and $s\in V$, outputs ``yes'' if there is a vertex $u\in V$ such that there are at least two different simple paths from $s$ to $u$ and outputs ``no'' otherwise.
+A simple path is a path that does not visit a vertex more than once.
+Two paths are different if they differ in at least one edge.
+Prove the correctness of your algorithm and analyze its time complexity.
+
+\textbf{Solution:}
+\begin{breakablealgorithm}
+\caption{$are\_two\_paths(s, u)$}
+\begin{algorithmic}[1]
+\STATE{Use DFS to find a path from $s$ to $u$.}
+\IF{don't find a path}
+\RETURN{no}
+\ELSE
+\STATE{Record this path as $p_1$.}
+\STATE{Use another way to run DFS to find a path from $s$ to $u$ ("another way" is explained below).}
+\STATE{Record this path as $p_2$.}
+\IF{$p_1 == p_2$}
+\RETURN{no}
+\ELSE
+\RETURN{yes}
+\ENDIF
+\ENDIF
+\end{algorithmic}
+\end{breakablealgorithm}
+``Another way":\\
+Take the adjacency matrix $adj$ as an example. When we run DFS, if we have visited the $i_{th}$ node $v_i$, we will push every $v_i$'s neighbors into stack from $adj[i][1]$ to $adj[i][n]$. And ``another way" is that after we have visited the $i-th$ node $v_i$, we will push every $v_i$'s neighbors into stack from $adj[i][n]$ to $adj[i][1]$, by reverse order.
+
+Correctness proof:
+\begin{itemize}
+	\item [1)] 
+	If there is not a path from $s$ to $u$, then this algorithm will output ``no''. In this case, the algorithm is correct.
+	\item [2)]
+	If there is only one path from $s$ to $u$, then $p_1$ must be as same as $p_2$, then this algorithm will output ``no''. In this case, the algorithm is correct.
+	\item [3)]
+	If there are two different paths, $path_1$ and $path_2$, from $s$ to $u$, suppose that $path_1$ is $s\rightarrow v_1\rightarrow v_2\rightarrow \cdots \rightarrow v_i\rightarrow x_1\rightarrow \cdots \rightarrow u$ and $path_2$ is $s\rightarrow v_1\rightarrow v_2\rightarrow \cdots \rightarrow v_i\rightarrow x_2\rightarrow \cdots \rightarrow u$ ($x_1$ and $x_2$ are the first vertex of difference between the two paths). And suppose that $x_1$ is in $adj[i][j]$, $x_2$ is in $adj[i][k]$ and $j > k$, then when we run the first DFS, $x_1$ will come out of the stack before $x_2$, so $path_1$ will be find, $p_1 == path_1$. In a similar way, when we run the second DFS, $path_2$ will be find, $p_2 == path_2$. So $p_1$ is not as same as $p_2$, this algorithm will output ``yes''. In this case, the algorithm is correct.
+	\item[4)]
+	If there are more than two different paths, the proof is similar to 3)'s proof.
+\end{itemize}
+Time complexity:\\
+This algorithm is running twice DFS, so its time complexity is $O(|V|+|E|)$ if we use adjacency list to store the graph and is $O(|V|^2)$ if we use adjacency matrix to store the graph.
+
+\miquestion[25]
+Given an undirected connected graph $G=(V,E)$ and a vertex $s$, if the DFS tree and the BFS tree rooted at $s$ are identical, prove that $G$ is a tree.
+
+\textbf{Proof:}
+
+To prove this proposition, we just need to prove that if the DFS tree and the BFS tree rooted at $s$ are identical, then $G$ is acyclic.\\
+Prove by contradiction. Suppose that the DFS tree and the BFS tree rooted at $s$ are identical and $G$ is cyclic, one of $G$'s loop is $v_1\rightarrow v_2\rightarrow v_n\rightarrow v_1$.\\
+Suppose that when we run DFS, the first vertex be found is $v_i$. Then $v_{i-1}$ or $v_{i+1}$ will be $v_i$'s only child in this loop's vertices.\\
+Suppose that when we run BFS, the first vertex be found is $v_i$. Then $v_{i-1}$ and $v_{i+1}$ will both be $v_i$'s children in this loop's vertices.\\
+So the DFS tree and the BFS tree rooted at $s$ are not identical. There is a contradiction. So if the DFS tree and the BFS tree rooted at $s$ are identical, then $G$ is acyclic. The proposition is proved.
+
+\miquestion[25]
+Consider a directed \emph{acyclic} edge-weighted graph $G=(V,E,w)$ where edge weights can be negative and a vertex $s\in V$. 
+\begin{parts}
+\part[20] Adapt the Bellman-Ford algorithm to find the distances of all vertices from $s$.
+Your algorithm must run in $O(|V|+|E|)$ time.
+Prove the correctness of your algorithm and analyze its time complexity.
+\part[5] Suppose now we want to find the length of the longest path from $s$ to each vertex $u\in V$ (the length is measured by the sum of the weights of the edges on the path, not by the number of the edges). Can we negate the weight of every edge and use the algorithm from the first part? If so, prove it; if not, provide a counterexample.
+\end{parts}
+
+\textbf{Solution:}
+
+\begin{parts}
+\part
+\begin{breakablealgorithm}
+\caption{$find\_distances(s, G)$}
+\begin{algorithmic}[1]
+\STATE{Use DFS to find the topological order of $G$}
+\STATE{$dist[s] \leftarrow 0$, $dist[x] \leftarrow \infty$ for other vertices $x$ in $G$}
+\FOR{each $v$, which start at $s$ and go to the last vertex by topological order}
+\FOR{each $(v, u)$}
+\IF{$dist[u] > dist[v]+w(v, u)$}
+\STATE{$dist[u] \leftarrow dist[v]+w(v, u)$}
+\ENDIF
+\ENDFOR
+\ENDFOR
+\end{algorithmic}
+\end{breakablealgorithm}
+\ \\
+Correctness proof:\\
+There is not any path from $s$ to $v$ for all $v$ whose topological order is before $s$. So $dist[v] = \infty$ for these $v$. Then we do $k$ rounds traversing from $s$ to the last vertex by topological order and each round we will update distances if it is necessary. And by topological order to update distances is as same as traversing all vertices to update, because there is not a path from $v$ to $u$ for $v$'s topological order is after $u$'s.\\
+So it satisfies Lemma 1 that we use to prove the correctness of Bellman-Ford. And there is no cycle in $G$, so we don't need Observation 2. Then we can prove that this algorithm is correct in a similar way to prove the correctness of Bellman-Ford.
+
+Time complexity:\\
+The time complexity of topological order is $O(|V|+|E|)$. Updating the distances can be divided into two parts: 1. traversing from $s$ to the last vertex by topological order. Its time complexity is $O(|V|)$. 2. traversing at most all edges. Its time complexity is $O(|E|)$. So the total time complexity is $O(|V|+|E|)+O(|V|)+O(|E|) = O(|V|+|E|)$.
+
+\part Yes, we can.\\
+Proof:\\
+If $s$ and $u$ are connected, there must be a longest path from $s$ to $u$ and this longest path'length is finite because $G$ is acyclic.\\
+Prove by contradiction. Suppose that
+\begin{itemize}
+\item[1)]the longest path from $s$ to $u$ is $p$ and the length of $p$ is $l$.
+\item[2)]we negate the weight of every edge and this new graph is $G'$, the shortest path from $s$ to $u$ is $p'$  and the length of $p'$ is $l'$.
+\item[3)]$p$ is not equal to $p'$.
+\end{itemize}
+$p$'s length is $-l$ in $G'$ and $p'$'s length is $-l'$ in $G$ because of 2). Then in $G'$, because $p'$ is the shortest path from $s$ to $u$, so $l' < -l$. In $G$, $-l' > l$, which means $p'$ is longer than $p$ in $G$. So $p$ is not the longest path in $G$. There is a contradiction. So $p$ must be equal to $p'$. The algorithm's correctness is proved.
+\end{parts}
+
+\miquestion[25]
+It is possible that the shortest path from $s$ to $t$ in an edge-weighted graph is not unique.
+Given a directed edge-weighted graph $G=(V,E,w)$ with positive edge weights and $s\in V$, design an $O((|V|+|E|)\log|V|)$ time algorithm to output a Boolean array $B$, with vertices being the array indices, such that $B[u]=\texttt{true}$ if the shortest path from $s$ to $u$ is unique and $B[u]=\texttt{false}$ otherwise.
+You can assume that every vertex $u\in V$ is reachable from $s$.
+Prove the correctness of your algorithm.
+
+\textbf{Solution:}
+
+This algorithm is only a small modification of Dijkstra algorithm.
+\begin{breakablealgorithm}
+\caption{$is\_unique(s, G)$}
+\begin{algorithmic}[1]
+\STATE{$T \leftarrow {s}$}
+\STATE{$B[v] \leftarrow \texttt{true}$, $map[v] \leftarrow \texttt{true}$ for all vertices $v$.}
+\STATE{$tdist[s]\leftarrow 0$, $tdist[v]\leftarrow \infty $ for all vertices $v$ other than $s$.}
+\STATE{$tdist[v]\leftarrow w(s, v)$, $pre[v]\leftarrow s$ for all edges $(s, v)$.}
+\WHILE{$T \neq  G$}
+\STATE{Find $v \notin T$ with the smallest $tdist[v]$.}
+\STATE{$T \leftarrow T\cup \{v\}$}
+\STATE{$B[v] \leftarrow map[v]$}
+\IF{$tdist[u]$ == $tdist[v]+w(v, u)$ for some edges $(v, u)$}
+\STATE{$map[u] \leftarrow \texttt{false}$ for all these vertices $u$}
+\ENDIF
+\STATE{$tdist[u] \leftarrow \min \{tdist[u], tdist[v]+w(v, u)\}$ for all edges $(v, u)$.}
+\IF{$tdist[u]$ is update}
+\STATE{$pre[u] \leftarrow v$}
+\STATE{$map[u] \leftarrow \texttt{true}$}
+\ENDIF
+\ENDWHILE
+\end{algorithmic}
+\end{breakablealgorithm}
+Correctness proof:\\
+In one loop, the $v$ that is newly added to $T$ can't be as same as $pre[u]$ for all $(v, u)$. If $tdist[u]$ is as same as $tdist[v]+w(u, v)$ for some edges $(v, u)$, then there are at least two paths of equal length from $s$ to $u$, and these paths' length is currently the shortest. In this case, $map[u]$ is \texttt{false}.\\
+In next loop, if the $v$, which is newly added to $T$, has $map[v]$ = \texttt{false}, then this case means that there are at least two shortest paths from $s$ to $v$. So $B[v]$ is \texttt{false}. And if $map[v]$ is \texttt{true}, then this case means that the shortest paths from $s$ to $v$ is unique. So $B[v]$ is \texttt{true}.\\
+And the other vertices that has not been added to $T$ are still have a chance to update, if the vertex $u$ is update, it is necessary to re-determine whether the shortest path from $s$ to $u$ is unique. So $map[u]$ will be \texttt{true}.
+
+Time complexity:\\
+This algorithm just adds five lines (8, 9, 10, 11, 15) on the basis of Dijkstra algorithm. This addition doubles the update time. If we use binary heap, the time complexity of update is still $O(|E|\log{|V|})$. So the total time complexity is still $O((|V|+|E|)\log{|V|})$.
+
+\miquestion
+How long does it take you to finish the assignment (including thinking and discussion)?
+Give a score (1,2,3,4,5) to the difficulty.
+Do you have any collaborators?
+Please write down their names here.
+
+It took me about 6 hours to finish the assignment. I spent about 2.5 hours thinking and discussing, and the rest of the time getting familiar with the use of Latex and search for relevant syntax.
+I'll give a 3 to the difficulty. My collaborator is Jiayang Li and his student ID is 522030910113.
+
+\end{questions}
+\end{document}
