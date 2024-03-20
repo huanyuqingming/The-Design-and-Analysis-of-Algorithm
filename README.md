@@ -1,2 +1,2 @@
-# The-Design-and-Analysis-of-Algorithm
+# The Design and Analysis of Algorithm
 AI2615
